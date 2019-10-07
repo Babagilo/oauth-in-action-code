@@ -22,16 +22,16 @@ app.set('views', 'files/client');
 
 // authorization server information
 var authServer = {
-	authorizationEndpoint: 'http://localhost:9001/authorize',
-	tokenEndpoint: 'http://localhost:9001/token'
+    authorizationEndpoint: 'http://localhost:9001/authorize',
+    tokenEndpoint: 'http://localhost:9001/token'
 };
 
 // client information
 
 var client = {
-	"client_id": "oauth-client-1",
-	"client_secret": "oauth-client-secret-1",
-	"scope": "foo bar"
+    "client_id": "oauth-client-1",
+    "client_secret": "oauth-client-secret-1",
+    "scope": "foo bar"
 };
 
 //var client = {};
@@ -45,83 +45,83 @@ var scope = null;
 var refresh_token = null;
 
 app.get('/', function (req, res) {
-	res.render('index', {access_token: access_token, refresh_token: refresh_token, scope: scope});
+    res.render('index', {access_token: access_token, refresh_token: refresh_token, scope: scope});
 });
 
 app.get('/authorize', function(req, res) {
-	// this renders the username/password form
-	res.render('username_password');
-	return;
+    // this renders the username/password form
+    res.render('username_password');
+    return;
 });
 
 app.post('/username_password', function(req, res) {
-	var username = req.body.username;
-	var password = req.body.password;
-	
-	var form_data = qs.stringify({
-		grant_type: 'password',
-		username: username,
-		password: password,
-		scope: client.scope
-	});
-	
-	var headers = {
-		'Content-Type': 'application/x-www-form-urlencoded',
-		'Authorization': 'Basic ' + encodeClientCredentials(client.client_id, client.client_secret)
-	};
+    var username = req.body.username;
+    var password = req.body.password;
 
-	var tokRes = request('POST', authServer.tokenEndpoint, {	
-		body: form_data,
-		headers: headers
-	});
-	
-	if (tokRes.statusCode >= 200 && tokRes.statusCode < 300) {
-		var body = JSON.parse(tokRes.getBody());
-	
-		access_token = body.access_token;
+    var form_data = qs.stringify({
+        grant_type: 'password',
+        username: username,
+        password: password,
+        scope: client.scope
+    });
 
-		scope = body.scope;
+    var headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Basic ' + encodeClientCredentials(client.client_id, client.client_secret)
+    };
 
-		refresh_token = body.refresh_token;
+    var tokRes = request('POST', authServer.tokenEndpoint, {
+        body: form_data,
+        headers: headers
+    });
 
-		res.render('index', {access_token: access_token, refresh_token: refresh_token, scope: scope});
-	} else {
-		res.render('error', {error: 'Unable to fetch access token, server response: ' + tokRes.statusCode})
-	}
+    if (tokRes.statusCode >= 200 && tokRes.statusCode < 300) {
+        var body = JSON.parse(tokRes.getBody());
+
+        access_token = body.access_token;
+
+        scope = body.scope;
+
+        refresh_token = body.refresh_token;
+
+        res.render('index', {access_token: access_token, refresh_token: refresh_token, scope: scope});
+    } else {
+        res.render('error', {error: 'Unable to fetch access token, server response: ' + tokRes.statusCode})
+    }
 });
 
 app.get('/fetch_resource', function(req, res) {
 
-	if (!access_token) {
-		res.render('error', {error: 'Missing access token.'});
-		return;
-	}
-	
-	console.log('Making request with access token %s', access_token);
-	
-	var headers = {
-		'Authorization': 'Bearer ' + access_token,
-		'Content-Type': 'application/x-www-form-urlencoded'
-	};
-	
-	var resource = request('POST', protectedResource,
-		{headers: headers}
-	);
-	
-	if (resource.statusCode >= 200 && resource.statusCode < 300) {
-		var body = JSON.parse(resource.getBody());
-		res.render('data', {resource: body});
-		return;
-	} else {
-		access_token = null;
-		res.render('error', {error: 'Server returned response code: ' + resource.statusCode});
-		return;
-	}
-	
+    if (!access_token) {
+        res.render('error', {error: 'Missing access token.'});
+        return;
+    }
+
+    console.log('Making request with access token %s', access_token);
+
+    var headers = {
+        'Authorization': 'Bearer ' + access_token,
+        'Content-Type': 'application/x-www-form-urlencoded'
+    };
+
+    var resource = request('POST', protectedResource,
+        {headers: headers}
+    );
+
+    if (resource.statusCode >= 200 && resource.statusCode < 300) {
+        var body = JSON.parse(resource.getBody());
+        res.render('data', {resource: body});
+        return;
+    } else {
+        access_token = null;
+        res.render('error', {error: 'Server returned response code: ' + resource.statusCode});
+        return;
+    }
+
 });
 
 var encodeClientCredentials = function(clientId, clientSecret) {
-	return new Buffer(querystring.escape(clientId) + ':' + querystring.escape(clientSecret)).toString('base64');
+    return new Buffer(querystring.escape(clientId) + ':' + querystring.escape(clientSecret)).toString('base64');
 };
 
 app.use('/', express.static('files/client'));

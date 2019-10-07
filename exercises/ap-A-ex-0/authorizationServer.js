@@ -16,18 +16,18 @@ app.set('json spaces', 4);
 
 // authorization server information
 var authServer = {
-	authorizationEndpoint: 'http://localhost:9001/authorize',
-	tokenEndpoint: 'http://localhost:9001/token'
+    authorizationEndpoint: 'http://localhost:9001/authorize',
+    tokenEndpoint: 'http://localhost:9001/token'
 };
 
 // client information
 var clients = [
-	{
-		"client_id": "oauth-client-1",
-		"client_secret": "oauth-client-secret-1",
-		"redirect_uris": ["http://localhost:9000/callback"],
-		"scope": "foo bar"
-	}
+    {
+        "client_id": "oauth-client-1",
+        "client_secret": "oauth-client-secret-1",
+        "redirect_uris": ["http://localhost:9000/callback"],
+        "scope": "foo bar"
+    }
 ];
 
 var codes = {};
@@ -35,7 +35,7 @@ var codes = {};
 var requests = {};
 
 app.get('/', function(req, res) {
-	res.render('index', {clients: clients, authServer: authServer});
+    res.render('index', {clients: clients, authServer: authServer});
 });
 
 app.use('/', express.static('files/authorizationServer'));

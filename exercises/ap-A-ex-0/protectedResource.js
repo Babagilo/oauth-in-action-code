@@ -17,8 +17,8 @@ app.use('/', express.static('files/protectedResource'));
 app.use(cors());
 
 var resource = {
-	"name": "Protected Resource",
-	"description": "This data has been protected by OAuth 2.0"
+    "name": "Protected Resource",
+    "description": "This data has been protected by OAuth 2.0"
 };
 
 var server = app.listen(9002, 'localhost', function () {

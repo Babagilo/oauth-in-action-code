@@ -22,50 +22,50 @@ app.use('/', express.static('files/protectedResource'));
 app.use(cors());
 
 var resource = {
-	"name": "Protected Resource",
-	"description": "This data has been protected by OAuth 2.0"
+    "name": "Protected Resource",
+    "description": "This data has been protected by OAuth 2.0"
 };
 
 var protectedResource = {
-		"resource_id": "protected-resource-1",
-		"resource_secret": "protected-resource-secret-1"
+        "resource_id": "protected-resource-1",
+        "resource_secret": "protected-resource-secret-1"
 };
 
 var authServer = {
-	introspectionEndpoint: 'http://localhost:9001/introspect'
+    introspectionEndpoint: 'http://localhost:9001/introspect'
 };
 
 
 var getAccessToken = function(req, res, next) {
 
-	/*
-	 * Implement PoP signature validation and token lookup using introspection
-	 */
+    /*
+     * Implement PoP signature validation and token lookup using introspection
+     */
 
 };
 
 var requireAccessToken = function(req, res, next) {
-	if (req.access_token) {
-		next();
-	} else {
-		res.status(401).end();
-	}
+    if (req.access_token) {
+        next();
+    } else {
+        res.status(401).end();
+    }
 };
 
 app.options('/resource', cors());
 
 app.post("/resource", cors(), getAccessToken, function(req, res){
 
-	if (req.access_token) {
-		res.json(resource);
-	} else {
-		res.status(401).end();
-	}
-	
+    if (req.access_token) {
+        res.json(resource);
+    } else {
+        res.status(401).end();
+    }
+    
 });
 
 var encodeClientCredentials = function(clientId, clientSecret) {
-	return new Buffer(querystring.escape(clientId) + ':' + querystring.escape(clientSecret)).toString('base64');
+    return new Buffer(querystring.escape(clientId) + ':' + querystring.escape(clientSecret)).toString('base64');
 };
 
 var server = app.listen(9002, 'localhost', function () {

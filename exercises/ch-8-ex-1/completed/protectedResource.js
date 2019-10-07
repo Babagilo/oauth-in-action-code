@@ -23,8 +23,8 @@ app.set('json spaces', 4);
 app.use('/', express.static('files/protectedResource'));
 
 var resource = {
-	"name": "Protected Resource",
-	"description": "This data has been protected by OAuth 2.0"
+    "name": "Protected Resource",
+    "description": "This data has been protected by OAuth 2.0"
 };
 
 var sharedTokenSecret = "shared token secret!";
@@ -38,79 +38,79 @@ var rsaKey = {
 };
 
 var protectedResources = {
-		"resource_id": "protected-resource-1",
-		"resource_secret": "protected-resource-secret-1"
+        "resource_id": "protected-resource-1",
+        "resource_secret": "protected-resource-secret-1"
 };
 
 var authServer = {
-	introspectionEndpoint: 'http://localhost:9001/introspect'
+    introspectionEndpoint: 'http://localhost:9001/introspect'
 };
 
 
 var getAccessToken = function(req, res, next) {
-	// check the auth header first
-	var auth = req.headers['authorization'];
-	var inToken = null;
-	if (auth && auth.toLowerCase().indexOf('bearer') == 0) {
-		inToken = auth.slice('bearer '.length);
-	} else if (req.body && req.body.access_token) {
-		// not in the header, check in the form body
-		inToken = req.body.access_token;
-	} else if (req.query && req.query.access_token) {
-		inToken = req.query.access_token
-	}
-	
-	console.log('Incoming token: %s', inToken);
-	nosql.one(function(token) {
-		if (token.access_token == inToken) {
-			return token;	
-		}
-	}, function(err, token) {
-		if (token) {
-			console.log("We found a matching token: %s", inToken);
-		} else {
-			console.log('No matching token was found.');
-		}
-		req.access_token = token;
-		next();
-		return;
-	});
+    // check the auth header first
+    var auth = req.headers['authorization'];
+    var inToken = null;
+    if (auth && auth.toLowerCase().indexOf('bearer') == 0) {
+        inToken = auth.slice('bearer '.length);
+    } else if (req.body && req.body.access_token) {
+        // not in the header, check in the form body
+        inToken = req.body.access_token;
+    } else if (req.query && req.query.access_token) {
+        inToken = req.query.access_token
+    }
+    
+    console.log('Incoming token: %s', inToken);
+    nosql.one(function(token) {
+        if (token.access_token == inToken) {
+            return token;    
+        }
+    }, function(err, token) {
+        if (token) {
+            console.log("We found a matching token: %s", inToken);
+        } else {
+            console.log('No matching token was found.');
+        }
+        req.access_token = token;
+        next();
+        return;
+    });
 };
 
 var requireAccessToken = function(req, res, next) {
-	if (req.access_token) {
-		next();
-	} else {
-		res.status(401).end();
-	}
+    if (req.access_token) {
+        next();
+    } else {
+        res.status(401).end();
+    }
 }; 
 
 app.get("/helloWorld", getAccessToken, function(req, res){
-	if (req.access_token) {
-		
-		res.setHeader('X-Content-Type-Options','nosniff');
-		res.setHeader('X-XSS-Protection', '1; mode=block');
+    if (req.access_token) {
+        
+        res.setHeader('X-Content-Type-Options','nosniff');
+        res.setHeader('X-XSS-Protection', '1; mode=block');
 
-		var resource = {
-			"greeting" : ""
-		};
+        var resource = {
+            "greeting" : ""
+        };
 
-		if (req.query.language == "en") {
-			resource.greeting = 'Hello World';
-		} else if (req.query.language == "de") {
-			resource.greeting ='Hallo Welt';
-		} else if (req.query.language == "it") {
-			resource.greeting = 'Ciao Mondo';
-		} else if (req.query.language == "fr") {
-			resource.greeting = 'Bonjour monde';
-		} else if (req.query.language == "es") {
-			resource.greeting ='Hola mundo';
-		} else {
-			resource.greeting = "Error, invalid language: "+ querystring.escape(req.query.language);
-		}
-		res.json(resource);
-	}
-	
+        if (req.query.language == "en") {
+            resource.greeting = 'Hello World';
+        } else if (req.query.language == "de") {
+            resource.greeting ='Hallo Welt';
+        } else if (req.query.language == "it") {
+            resource.greeting = 'Ciao Mondo';
+        } else if (req.query.language == "fr") {
+            resource.greeting = 'Bonjour monde';
+        } else if (req.query.language == "es") {
+            resource.greeting ='Hola mundo';
+        } else {
+            resource.greeting = "Error, invalid language: "+ querystring.escape(req.query.language);
+        }
+        res.json(resource);
+    }
+    
 });
 
 var server = app.listen(9002, 'localhost', function () {

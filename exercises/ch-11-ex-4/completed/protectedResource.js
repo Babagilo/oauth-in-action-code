@@ -20,67 +20,67 @@ app.use('/', express.static('files/protectedResource'));
 app.use(cors());
 
 var resource = {
-	"name": "Protected Resource",
-	"description": "This data has been protected by OAuth 2.0"
+    "name": "Protected Resource",
+    "description": "This data has been protected by OAuth 2.0"
 };
 
 var protectedResource = {
-		"resource_id": "protected-resource-1",
-		"resource_secret": "protected-resource-secret-1"
+        "resource_id": "protected-resource-1",
+        "resource_secret": "protected-resource-secret-1"
 };
 
 var authServer = {
-	introspectionEndpoint: 'http://localhost:9001/introspect'
+    introspectionEndpoint: 'http://localhost:9001/introspect'
 };
 
 
 var getAccessToken = function(req, res, next) {
-	// check the auth header first
-	var auth = req.headers['authorization'];
-	var inToken = null;
-	if (auth && auth.toLowerCase().indexOf('bearer') == 0) {
-		inToken = auth.slice('bearer '.length);
-	} else if (req.body && req.body.access_token) {
-		// not in the header, check in the form body
-		inToken = req.body.access_token;
-	} else if (req.query && req.query.access_token) {
-		inToken = req.query.access_token
-	}
-	
-	console.log('Incoming token: %s', inToken);
-	
-	var form_data = qs.stringify({
-		token: inToken
-	});
-	var headers = {
-		'Content-Type': 'application/x-www-form-urlencoded',
-		'Authorization': 'Basic ' + encodeClientCredentials(protectedResource.resource_id, protectedResource.resource_secret)
-	};
+    // check the auth header first
+    var auth = req.headers['authorization'];
+    var inToken = null;
+    if (auth && auth.toLowerCase().indexOf('bearer') == 0) {
+        inToken = auth.slice('bearer '.length);
+    } else if (req.body && req.body.access_token) {
+        // not in the header, check in the form body
+        inToken = req.body.access_token;
+    } else if (req.query && req.query.access_token) {
+        inToken = req.query.access_token
+    }
+    
+    console.log('Incoming token: %s', inToken);
+    
+    var form_data = qs.stringify({
+        token: inToken
+    });
+    var headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Basic ' + encodeClientCredentials(protectedResource.resource_id, protectedResource.resource_secret)
+    };
 
-	var tokRes = request('POST', authServer.introspectionEndpoint, {	
-		body: form_data,
-		headers: headers
-	});
-	
-	if (tokRes.statusCode >= 200 && tokRes.statusCode < 300) {
-		var body = JSON.parse(tokRes.getBody());
-	
-		console.log('Got introspection response', body);
-		var active = body.active;
-		if (active) {
-			req.access_token = body;
-		}
-	}
-	next();
-	return;
+    var tokRes = request('POST', authServer.introspectionEndpoint, {    
+        body: form_data,
+        headers: headers
+    });
+    
+    if (tokRes.statusCode >= 200 && tokRes.statusCode < 300) {
+        var body = JSON.parse(tokRes.getBody());
+    
+        console.log('Got introspection response', body);
+        var active = body.active;
+        if (active) {
+            req.access_token = body;
+        }
+    }
+    next();
+    return;
 };
 
 var requireAccessToken = function(req, res, next) {
-	if (req.access_token) {
-		next();
-	} else {
-		res.status(401).end();
-	}
+    if (req.access_token) {
+        next();
+    } else {
+        res.status(401).end();
+    }
 };
 
 
@@ -88,16 +88,16 @@ app.options('/resource', cors());
 
 app.post("/resource", cors(), getAccessToken, function(req, res){
 
-	if (req.access_token) {
-		res.json(resource);
-	} else {
-		res.status(401).end();
-	}
-	
+    if (req.access_token) {
+        res.json(resource);
+    } else {
+        res.status(401).end();
+    }
+    
 });
 
 var encodeClientCredentials = function(clientId, clientSecret) {
-	return new Buffer(querystring.escape(clientId) + ':' + querystring.escape(clientSecret)).toString('base64');
+    return new Buffer(querystring.escape(clientId) + ':' + querystring.escape(clientSecret)).toString('base64');
 };
 
 var server = app.listen(9002, 'localhost', function () {
