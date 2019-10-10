@@ -34,19 +34,19 @@ var getAccessToken = function(req, res, next) {
     }
 
     console.log('Incoming token: %s', inToken);
-    nosql.one(function(token) {
-        if (token.access_token == inToken) {
-            return token;
-        }
-    }, function(err, token) {
-        if (token) {
-            console.log("We found a matching token: %s", inToken);
-        } else {
-            console.log('No matching token was found.');
-        }
-        req.access_token = token;
-        next();
-        return;
+
+    nosql.find().make(function (builder) {
+        builder.where('access_token', inToken);
+        builder.callback((err, tokens) => {
+            if(tokens.length > 0) {
+                console.log("We found a matching token: %s", inToken);
+                req.access_token = tokens[0];
+            } else {
+                console.log('No matching token was found.');
+                req.access_token = null;
+            }
+            return next();
+        })
     });
 };
 
