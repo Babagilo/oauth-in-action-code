@@ -49,7 +49,7 @@ app.get("/authorize", function(req, res){
     /*
      * Process the request, validate the client, and send the user to the approval page
      */
-
+    res.sendStatus(501);
 });
 
 app.post('/approve', function(req, res) {
@@ -58,6 +58,7 @@ app.post('/approve', function(req, res) {
      * Process the results of the approval page, authorize the client
      */
 
+    res.sendStatus(501);
 });
 
 app.post("/token", function(req, res){
@@ -65,7 +66,7 @@ app.post("/token", function(req, res){
     /*
      * Process the request, issue an access token
      */
-
+    res.sendStatus(501);
 });
 
 var buildUrl = function(base, options, hash) {
