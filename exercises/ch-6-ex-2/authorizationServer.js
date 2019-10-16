@@ -214,28 +214,30 @@ app.post("/token", function(req, res){
      */
 
     } else if (req.body.grant_type == 'refresh_token') {
-        nosql.one(function(token) {
-            if (token.refresh_token == req.body.refresh_token) {
-                return token;
-            }
-        }, function(err, token) {
-            if (token) {
-                console.log("We found a matching refresh token: %s", req.body.refresh_token);
-                if (token.client_id != clientId) {
-                    nosql.remove(function(found) { return (found == token); }, function () {} );
+        nosql.find().make(function (builder) {
+            builder.where('refresh_token', req.body.refresh_token);
+            builder.callback((err, tokens) => {
+                if (tokens.length > 0) {
+                    console.log("We found a matching token: %s", tokens[0]);
+
+                    if(tokens[0].client_id !== clientId) {
+                        nosql.remove().make(function (builder) {
+                            builder.where('refresh_token', req.body.refresh_token);
+                            builder.callback((err) => err ? console.error(`error while removing refresh token: ${err}`) : null);
+                            res.status(400).json({error: 'invalid_grant'});
+                            return;
+                        })
+                    }
+                    let access_token = randomstring.generate();
+                    nosql.insert({ access_token: access_token, client_id: clientId });
+                    let token_response = { access_token: access_token, token_type: 'Bearer',  refresh_token: tokens[0].refresh_token };
+                    res.status(200).json(token_response);
+                } else {
+                    console.log('No matching token was found.');
                     res.status(400).json({error: 'invalid_grant'});
                     return;
                 }
-                var access_token = randomstring.generate();
-                nosql.insert({ access_token: access_token, client_id: clientId });
-                var token_response = { access_token: access_token, token_type: 'Bearer',  refresh_token: token.refresh_token };
-                res.status(200).json(token_response);
-                return;
-            } else {
-                console.log('No matching token was found.');
-                res.status(400).json({error: 'invalid_grant'});
-                return;
-            }
+            })
         });
     } else {
         console.log('Unknown grant type %s', req.body.grant_type);
@@ -282,4 +284,4 @@ var server = app.listen(9001, 'localhost', function () {
 
   console.log('OAuth Authorization Server is listening at http://%s:%s', host, port);
 });
- 
+
