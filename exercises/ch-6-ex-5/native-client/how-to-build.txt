@@ -1,0 +1,7 @@
+sudo npm install -g cordova
+npm install ios-sim
+cordova platform add ios
+# cordova platform add ios - execute again if getting errors in previous step
+cordova plugin add cordova-plugin-inappbrowser
+cordova plugin add cordova-plugin-customurlscheme --variable URL_SCHEME=com.oauthinaction.mynativeapp
+cordova run ios
