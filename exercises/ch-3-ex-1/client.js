@@ -44,6 +44,10 @@ app.get('/', function (req, res) {
 });
 
 app.get('/authorize', function (req, res) {
+	//throw away old token
+	access_token = null;
+
+	state = randomstring.generate();
 
 	/*
 	 * Send the user to the authorization server
@@ -51,7 +55,8 @@ app.get('/authorize', function (req, res) {
 	var authorizeUrl = buildUrl(authServer.authorizationEndpoint, {
 		response_type: 'code',
 		client_id: client.client_id,
-		'redirect_uri': client.redirect_uris[0]
+		'redirect_uri': client.redirect_uris[0],
+		'state': state
 	});
 	res.redirect(authorizeUrl);
 });
@@ -61,10 +66,14 @@ app.get('/callback', function (req, res) {
 	/*
 	 * Parse the response from the authorization server and get a token
 	 */
+	if (req.query.state != state) {
+		res.render('error', { error: 'State value did not match' });
+		return;
+	}
 	var code = req.query.code;
 	var form_data = qs.stringify({
 		grant_type: 'authorization_code',
-		code: code,
+		'code': code,
 		redirect_uri: client.redirect_uris[0]
 	});
 	var headers = {
@@ -80,7 +89,7 @@ app.get('/callback', function (req, res) {
 	);
 	var body = JSON.parse(tokRes.getBody());
 	access_token = body.access_token;
-	res.render('index', { 'access_token': body.access_token, 'scope': scope });
+	res.render('index', { 'access_token': access_token, 'scope': scope });
 });
 
 app.get('/fetch_resource', function (req, res) {
@@ -88,6 +97,24 @@ app.get('/fetch_resource', function (req, res) {
 	/*
 	 * Use the access token to call the resource server
 	 */
+	var headers = {
+		'Authorization': 'Bearer ' + access_token
+	};
+	var resource = request('POST', protectedResource,
+		{ headers: headers }
+	);
+
+	if (resource.statusCode >= 200 && resource.statusCode < 300) {
+		var body = JSON.parse(resource.getBody());
+		res.render('data', { resource: body });
+		return;
+	} else {
+		res.render('error', {
+			error: 'Server returned response code: ' + resource.
+				statusCode
+		});
+		return;
+	}
 
 });
 
@@ -108,7 +135,7 @@ var buildUrl = function (base, options, hash) {
 };
 
 var encodeClientCredentials = function (clientId, clientSecret) {
-	return new Buffer(querystring.escape(clientId) + ':' + querystring.escape(clientSecret)).toString('base64');
+	return Buffer.from(querystring.escape(clientId) + ':' + querystring.escape(clientSecret)).toString('base64');
 };
 
 app.use('/', express.static('files/client'));
