@@ -22,7 +22,7 @@ var resource = {
 	"description": "This data has been protected by OAuth 2.0"
 };
 
-var getAccessToken = function(req, res, next) {
+var getAccessToken = function (req, res, next) {
 	var inToken = null;
 	var auth = req.headers['authorization'];
 	if (auth && auth.toLowerCase().indexOf('bearer') == 0) {
@@ -32,25 +32,24 @@ var getAccessToken = function(req, res, next) {
 	} else if (req.query && req.query.access_token) {
 		inToken = req.query.access_token
 	}
-	
+
 	console.log('Incoming token: %s', inToken);
-	nosql.one(function(token) {
-		if (token.access_token == inToken) {
-			return token;	
-		}
-	}, function(err, token) {
-		if (token) {
-			console.log("We found a matching token: %s", inToken);
-		} else {
-			console.log('No matching token was found.');
-		}
-		req.access_token = token;
-		next();
-		return;
-	});
+	nosql.one().make(builder => {
+		builder.where('access_token', inToken);
+		builder.callback((err, token) => {
+			if (token) {
+				console.log("We found a matching token: %s", inToken);
+			} else {
+				console.log('No matching token was found.');
+			}
+			req.access_token = token;
+			next();
+			return;
+		})
+	})
 };
 
-var requireAccessToken = function(req, res, next) {
+var requireAccessToken = function (req, res, next) {
 	if (req.access_token) {
 		next();
 	} else {
@@ -60,14 +59,14 @@ var requireAccessToken = function(req, res, next) {
 
 var savedWords = [];
 
-app.get('/words', getAccessToken, requireAccessToken, function(req, res) {
+app.get('/words', getAccessToken, requireAccessToken, function (req, res) {
 	/*
 	 * Make this function require the "read" scope
 	 */
-	res.json({words: savedWords.join(' '), timestamp: Date.now()});
+	res.json({ words: savedWords.join(' '), timestamp: Date.now() });
 });
 
-app.post('/words', getAccessToken, requireAccessToken, function(req, res) {
+app.post('/words', getAccessToken, requireAccessToken, function (req, res) {
 	/*
 	 * Make this function require the "write" scope
 	 */
@@ -77,7 +76,7 @@ app.post('/words', getAccessToken, requireAccessToken, function(req, res) {
 	res.status(201).end();
 });
 
-app.delete('/words', getAccessToken, requireAccessToken, function(req, res) {
+app.delete('/words', getAccessToken, requireAccessToken, function (req, res) {
 	/*
 	 * Make this function require the "delete" scope
 	 */
@@ -86,9 +85,9 @@ app.delete('/words', getAccessToken, requireAccessToken, function(req, res) {
 });
 
 var server = app.listen(9002, 'localhost', function () {
-  var host = server.address().address;
-  var port = server.address().port;
+	var host = server.address().address;
+	var port = server.address().port;
 
-  console.log('OAuth Resource Server is listening at http://%s:%s', host, port);
+	console.log('OAuth Resource Server is listening at http://%s:%s', host, port);
 });
- 
+
