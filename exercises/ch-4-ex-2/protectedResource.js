@@ -34,19 +34,20 @@ var getAccessToken = function (req, res, next) {
 	}
 
 	console.log('Incoming token: %s', inToken);
-	nosql.one().make(builder => {
-		builder.where('access_token', inToken);
-		builder.callback((err, token) => {
-			if (token) {
+
+	nosql.one().make(function (builder) {
+		builder.where('access_token', inToken).callback(function (err, response) {
+			console.log(response);
+			if (response) {
 				console.log("We found a matching token: %s", inToken);
 			} else {
 				console.log('No matching token was found.');
-			}
-			req.access_token = token;
+			};
+			req.access_token = response;
 			next();
 			return;
 		})
-	})
+	});
 };
 
 var requireAccessToken = function (req, res, next) {
@@ -63,7 +64,18 @@ app.get('/words', getAccessToken, requireAccessToken, function (req, res) {
 	/*
 	 * Make this function require the "read" scope
 	 */
-	res.json({ words: savedWords.join(' '), timestamp: Date.now() });
+	if (__.contains(req.access_token.scope, 'read')) {
+		res.json({ words: savedWords.join(' '), timestamp: Date.now() });
+	} else {
+		// console.log("read scope not found, 403 f23")
+		
+		// //res.json({ error: "insufficient_scope", timestamp: Date.now() });
+		// res.set('WWW-Authenticate', 'Bearer realm=localhost:9002, error="insufficient_scope", scope="read"');
+		
+		// //res.json({ words: '403 somehow', timestamp: Date.now() });
+		// res.status(403).end();
+		res.status(401).end();
+	}
 });
 
 app.post('/words', getAccessToken, requireAccessToken, function (req, res) {
