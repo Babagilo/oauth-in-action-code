@@ -137,6 +137,7 @@ app.get('/produce', function(req, res) {
 		res.render('produce', {scope: scope, data: body});
 		return;
 	} else {
+		console.log("resource.statusCode= " + resource.statusCode)
 		res.render('produce', {scope: scope, data: {fruits: [], veggies: [], meats: []}});
 		return;
 	}
