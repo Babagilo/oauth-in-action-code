@@ -5,7 +5,7 @@ var randomstring = require("randomstring");
 var cons = require('consolidate');
 var nosql = require('nosql').load('database.nosql');
 var qs = require("qs");
-var querystring = require('querystring');
+
 var request = require("sync-request");
 var __ = require('underscore');
 var base64url = require('base64url');
@@ -97,9 +97,10 @@ app.get("/helloWorld", getAccessToken, function(req, res){
 		} else if (req.query.language == "es") {
 			res.send('Hola mundo');
 		} else {
-			res.send("Error, invalid language: "+ req.query.language);
+			res.send("Error, invalid language: "+ encodeURIComponent(req.query.language));
 		}
 	}
+	res.send("no access token 103")
 	
 });
 
