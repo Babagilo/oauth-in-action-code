@@ -1,3 +1,5 @@
+
+var cors = require('cors');
 var express = require("express");
 var url = require("url");
 var bodyParser = require('body-parser');
@@ -84,7 +86,8 @@ var requireAccessToken = function(req, res, next) {
 	}
 }; 
 
-app.get("/helloWorld", getAccessToken, function(req, res){
+app.options('/helloWorld', cors());
+app.get("/helloWorld", cors(), getAccessToken, function(req, res){
 	if (req.access_token) {
 		
 		res.setHeader('X-Content-Type-Options','nosniff');
@@ -109,6 +112,7 @@ app.get("/helloWorld", getAccessToken, function(req, res){
 		}
 		res.json(resource);
 	}
+	res.status(403).end()
 	
 });
 
