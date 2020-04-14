@@ -181,7 +181,12 @@ app.post("/token", function(req, res){
 		
 		if (code) {
 			delete codes[req.body.code]; // burn our code, it's been used
-			
+			if (code.request.redirect_uri) {
+				if (code.request.redirect_uri != req.body.redirect_uri) {
+					res.status(400).json({ error: ‘invalid_grant’ });
+					return;
+				}
+				}
 			/*
 			 * Make sure any passed-in redirect URI matches the registered redirect URI
 			 */
