@@ -227,7 +227,7 @@ app.post("/token", function(req, res){
 				 * Sign the JWT using HS256 instead of this unsigned one
 				 */
 				
-				var header = { 'typ': 'JWT', 'alg': 'none' };
+				const header = { 'typ': 'JWT', 'alg': 'HS256' };
 				var payload = {
 					iss: 'http://localhost:9001/',
 					sub: code.user ? code.user.sub : undefined,
@@ -236,12 +236,11 @@ app.post("/token", function(req, res){
 					exp: Math.floor(Date.now() / 1000) + (5 * 60),
 					jti: randomstring.generate(8)
 				};
-				
-				var access_token = base64url.encode(JSON.stringify(header))
-					+ '.'
-					+ base64url.encode(JSON.stringify(payload))
-					+ '.';
 
+				const access_token = jose.jws.JWS.sign(header.alg,
+					JSON.stringify(header),
+					JSON.stringify(payload),
+					Buffer.from(sharedTokenSecret).toString('hex'));
 				nosql.insert({ access_token: access_token, client_id: clientId, scope: code.scope, user: code.user });
 
 				console.log('Issuing access token %s', access_token);
