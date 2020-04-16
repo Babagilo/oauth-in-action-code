@@ -37,7 +37,7 @@ var clients = [
 	}
 ];
 
-var protectedResources = [
+const protectedResources = [
 	{
 		"resource_id": "protected-resource-1",
 		"resource_secret": "protected-resource-secret-1"
@@ -287,7 +287,44 @@ app.post('/introspect', function(req, res) {
 	/*
 	 * Implement the introspection endpoint
 	 */
+	var auth = req.headers['authorization'];
+	var resourceCredentials = decodeClientCredentials(auth);
+	var resourceId = resourceCredentials.id;
+	var resourceSecret = resourceCredentials.secret;
 
+	var resource = getProtectedResource(resourceId);
+	if (!resource) {
+		res.status(401).end();
+		return;
+	}
+	if (resource.resource_secret != resourceSecret) {
+		res.status(401).end();
+		return;
+	}
+
+	const inToken = req.body.token;
+	nosql.one().make(builder => builder.where('access_token', inToken))
+	.callback(function (err, token) {
+		if (token) {
+			var introspectionResponse = {
+				active: true,
+				iss: 'http://localhost:9001/',
+				aud: 'http://localhost:9002/',
+				sub: token.user ? token.user.sub : undefined,
+				username: token.user ? token.user.preferred_username : undefined,
+				scope: token.scope ? token.scope.join(' ') : undefined,
+				client_id: token.client_id
+			};
+			res.status(200).json(introspectionResponse);
+			return;
+		} else {
+			var introspectionResponse = {
+				active: false
+			};
+			res.status(200).json(introspectionResponse);
+			return;
+		}
+	});
 });
 
 var buildUrl = function(base, options, hash) {
@@ -307,7 +344,7 @@ var buildUrl = function(base, options, hash) {
 };
 
 var decodeClientCredentials = function(auth) {
-	var clientCredentials = new Buffer(auth.slice('basic '.length), 'base64').toString().split(':');
+	var clientCredentials = Buffer.from(auth.slice('basic '.length), 'base64').toString().split(':');
 	var clientId = querystring.unescape(clientCredentials[0]);
 	var clientSecret = querystring.unescape(clientCredentials[1]);	
 	return { id: clientId, secret: clientSecret };
