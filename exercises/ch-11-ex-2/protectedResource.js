@@ -32,7 +32,7 @@ var authServer = {
 };
 
 
-var sharedTokenSecret = 'shared OAuth token secret!';
+const sharedTokenSecret = 'shared OAuth token secret!';
 
 
 var getAccessToken = function(req, res, next) {

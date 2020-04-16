@@ -78,7 +78,7 @@ var getUser = function(username) {
 };
 
 
-var sharedTokenSecret = 'shared OAuth token secret!';
+const sharedTokenSecret = 'shared OAuth token secret!';
 
 
 app.get('/', function(req, res) {
@@ -311,7 +311,7 @@ var buildUrl = function(base, options, hash) {
 };
 
 var decodeClientCredentials = function(auth) {
-	var clientCredentials = new Buffer(auth.slice('basic '.length), 'base64').toString().split(':');
+	var clientCredentials = Buffer.from(auth.slice('basic '.length), 'base64').toString().split(':');
 	var clientId = querystring.unescape(clientCredentials[0]);
 	var clientSecret = querystring.unescape(clientCredentials[1]);	
 	return { id: clientId, secret: clientSecret };
