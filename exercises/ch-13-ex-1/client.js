@@ -132,7 +132,36 @@ app.get("/callback", function(req, res){
 		/*
 		 * Parse and validate the ID token
 		 */
-		
+		if (body.id_token) {
+			userInfo = null;
+			id_token = null;
+
+			console.log('Got ID token: %s', body.id_token);
+	
+			// check the id token
+			var pubKey = jose.KEYUTIL.getKey(rsaKey);
+			var tokenParts = body.id_token.split('.');
+			var payload = JSON.parse(base64url.decode(tokenParts[1]));
+			console.log('Payload', payload);
+			if (jose.jws.JWS.verify(body.id_token, pubKey, [rsaKey.alg])) {
+
+				if (payload.iss == 'http://localhost:9001/') {
+					if ((Array.isArray(payload.aud) && __.contains(payload.aud,
+						client.client_id)) ||
+						payload.aud == client.client_id) {
+						var now = Math.floor(Date.now() / 1000);
+						if (payload.iat <= now) {
+							if (payload.exp >= now) {
+								id_token = payload;
+								res.render('userinfo', { userInfo: userInfo, id_token: id_token });
+								return;
+							}
+						}
+					}
+				}
+			}
+		}
+
 		res.render('index', {access_token: access_token, refresh_token: refresh_token, scope: scope});
 		return;
 
@@ -172,12 +201,26 @@ app.get('/fetch_resource', function(req, res) {
 	
 });
 
-app.get('/userinfo', function(req, res) {
-	
+app.get('/userinfo', function (req, res) {
+
 	/*
 	 * Call the UserInfo endpoint and store/display the results
 	 */
-	
+	var headers = {
+		'Authorization': 'Bearer ' + access_token
+	};
+	var resource = request('GET', authServer.userInfoEndpoint,
+		{ headers: headers }
+	);
+	if (resource.statusCode >= 200 && resource.statusCode < 300) {
+		var body = JSON.parse(resource.getBody());
+		userInfo = body;
+		res.render('userinfo', { userInfo: userInfo, id_token: id_token });
+		return;
+	} else {
+		res.render('error', { error: 'Unable to fetch user information' });
+		return;
+	}
 });
 
 app.use('/', express.static('files/client'));
@@ -199,7 +242,7 @@ var buildUrl = function(base, options, hash) {
 };
 
 var encodeClientCredentials = function(clientId, clientSecret) {
-	return new Buffer(querystring.escape(clientId) + ':' + querystring.escape(clientSecret)).toString('base64');
+	return Buffer.from(querystring.escape(clientId) + ':' + querystring.escape(clientSecret)).toString('base64');
 };
 
 var server = app.listen(9000, 'localhost', function () {
