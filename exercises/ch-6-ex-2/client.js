@@ -61,6 +61,8 @@ app.get('/authorize', function (req, res) {
 		'Authorization': 'Basic ' + encodeClientCredentials(client.client_id,
 			client.client_secret)
 	};
+	console.log("POST " + authServer.tokenEndpoint + " with\n"
+	+ form_data)
 	var tokRes = request('POST', authServer.tokenEndpoint, {
 		body: form_data,
 		headers: headers
