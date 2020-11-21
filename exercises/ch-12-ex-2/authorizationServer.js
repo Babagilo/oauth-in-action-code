@@ -239,17 +239,19 @@ app.post("/token", function(req, res){
 	}
 });
 
-var checkClientMetadata = function(req, res) {
-	var reg = {};
+function checkClientMetadata (req, res) {
+	let reg = {};
 
 	if (!req.body.token_endpoint_auth_method) {
-		reg.token_endpoint_auth_method = 'secret_basic';	
+		reg.token_endpoint_auth_method = 'client_secret_basic';	
 	} else {
 		reg.token_endpoint_auth_method = req.body.token_endpoint_auth_method;
 	}
 	
-	if (!__.contains(['secret_basic', 'secret_post', 'none'], reg.token_endpoint_auth_method)) {
-		res.status(400).json({error: 'invalid_client_metadata'});
+	if (!['client_secret_basic', 'client_secret_post', 'none'].includes(reg.token_endpoint_auth_method)) {
+		res.status(400).json({
+			error: 'invalid_client_metadata', 
+			"error_description":  'authorizationServer.js: invalid token_endpoint_auth_method'});
 		return;
 	}
 	
@@ -314,13 +316,8 @@ var checkClientMetadata = function(req, res) {
 		reg.scope = req.body.scope;
 	}
 	
-	reg.client_id = randomstring.generate();
-	if (__.contains(['client_secret_basic', 'client_secret_post']), reg.token_endpoint_auth_method) {
-		reg.client_secret = randomstring.generate();
-	}
-	
 	return reg;
-};
+}
 
 app.post('/register', function (req, res){
 	
@@ -328,7 +325,11 @@ app.post('/register', function (req, res){
 	if (!reg) {
 		return;
 	}
-	
+
+	reg.client_id = randomstring.generate();
+	if (['client_secret_basic', 'client_secret_post'].includes(reg.token_endpoint_auth_method) ) {
+		reg.client_secret = randomstring.generate();
+	}
 	reg.client_id_created_at = Math.floor(Date.now() / 1000);
 	reg.client_secret_expires_at = 0;
 
@@ -343,6 +344,7 @@ app.post('/register', function (req, res){
 
 var authorizeConfigurationEndpointRequest = function (req, res, next) {
 	var clientId = req.params.clientId;
+	//console.log("348 client id: %s", clientId)
 	var client = getClient(clientId);
 	if (!client) {
 		res.status(404).end();
@@ -370,17 +372,17 @@ var authorizeConfigurationEndpointRequest = function (req, res, next) {
 };
 
 app.get('/register/:clientId', authorizeConfigurationEndpointRequest, function(req, res) {
-	res.status(200).json(client);
+	res.status(200).json(req.client);
 });
 
 app.put('/register/:clientId', authorizeConfigurationEndpointRequest, function(req, res) {
 
-	if (req.body.client_id != client.client_id) {
+	if (req.body.client_id !== req.client.client_id) {
 		res.status(400).json({error: 'invalid_client_metadata'});
 		return;
 	}
 	
-	if (req.body.client_secret && req.body.client_secret != client.client_secret) {
+	if (req.body.client_secret && req.body.client_secret !== req.client.client_secret) {
 		res.status(400).json({error: 'invalid_client_metadata'});
 	}
 
@@ -389,31 +391,25 @@ app.put('/register/:clientId', authorizeConfigurationEndpointRequest, function(r
 		return;
 	}
 
-	__.each(client, function(value, key, list) {
-		client[key] = reg[key];
-	});
 	__.each(reg, function(value, key, list) {
-		client[key] = reg[key];
+		req.client[key] = reg[key];
 	});
 
-	res.status(200).json(client);
+	res.status(200).json(req.client);
 	
 });
 
 app.delete('/register/:clientId', authorizeConfigurationEndpointRequest, function(req, res) {
-	clients = __.reject(clients, __.matches({client_id: client.client_id}));
+	clients = __.reject(clients, __.matches({client_id: req.client.client_id}));
 
-	nosql.remove(function(token) {
-		if (token.client_id == clientId) {
-			return true;	
-		}
-	}, function(err, count) {
-		console.log("Removed %s clients", count);
+	nosql.remove().make(function (builder) {
+		builder.where('client_id', req.client.client_id);
+		builder.callback(function (err, count) {
+			console.log("Removed %s tokens", count);
+			res.status(204).end();
+			return;
+		});
 	});
-	
-	res.status(204).end();
-	return;
-
 	
 });
 
@@ -433,12 +429,12 @@ var buildUrl = function(base, options, hash) {
 	return url.format(newUrl);
 };
 
-var decodeClientCredentials = function(auth) {
-	var clientCredentials = new Buffer(auth.slice('basic '.length), 'base64').toString().split(':');
+function decodeClientCredentials(auth) {
+	var clientCredentials = Buffer.from(auth.slice('basic '.length), 'base64').toString().split(':');
 	var clientId = querystring.unescape(clientCredentials[0]);
 	var clientSecret = querystring.unescape(clientCredentials[1]);	
 	return { id: clientId, secret: clientSecret };
-};
+}
 
 var getScopesFromForm = function(body) {
 	return __.filter(__.keys(body), function(s) { return __.string.startsWith(s, 'scope_'); })
