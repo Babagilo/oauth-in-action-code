@@ -171,25 +171,25 @@ app.get('/fetch_resource', function(req, res) {
 	
 });
 
-var registerClient = function() {
+function registerClient() {
 	
 	/*
 	 * Call the registration endpoint with your desired client information and save the results
 	 */
-	var template = {
+	const template = {
 		client_name: 'OAuth in Action Dynamic Test Client',
 		client_uri: 'http://localhost:9000/',
 		redirect_uris: ['http://localhost:9000/callback'],
 		grant_types: ['authorization_code'],
 		response_types: ['code'],
-		token_endpoint_auth_method: 'secret_basic'
+		token_endpoint_auth_method: 'client_secret_basic'
 	};
 
-	var headers = {
+	const headers = {
 		'Content-Type': 'application/json',
 		'Accept': 'application/json'
 	};
-	var regRes = request('POST', authServer.registrationEndpoint,
+	const regRes = request('POST', authServer.registrationEndpoint,
 		{
 			body: JSON.stringify(template),
 			headers: headers
@@ -197,13 +197,15 @@ var registerClient = function() {
 	);
 
 	if (regRes.statusCode == 201) {
-		var body = JSON.parse(regRes.getBody());
+		const body = JSON.parse(regRes.getBody());
 		console.log("Got registered client", body);
 		if (body.client_id) {
 			client = body;
 		}
+	}else{
+		console.log("Client Registratin Failed with HTTP Response {}", JSON.parse(regRes.getBody()));
 	}
-};
+}
 
 app.use('/', express.static('files/client'));
 

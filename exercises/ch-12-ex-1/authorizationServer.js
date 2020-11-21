@@ -244,16 +244,19 @@ app.post('/register', function (req, res){
 	/*
 	 * Implement the registration endpoint
 	 */
-	var reg = {};
+	let reg = {};
 
 	if (!req.body.token_endpoint_auth_method) {
 		reg.token_endpoint_auth_method = 'secret_basic';
 	} else {
 		reg.token_endpoint_auth_method = req.body.token_endpoint_auth_method;
 	}
-	if (!__.contains(['secret_basic', 'secret_post', 'none'],
-		reg.token_endpoint_auth_method)) {
-		res.status(400).json({ error: 'invalid_client_metadata' });
+
+	if (!['client_secret_basic', 'client_secret_post', 'none'].includes(reg.token_endpoint_auth_method)) {
+
+		res.status(400).json({
+			 error: 'invalid_client_metadata', 
+			 "error_description":  '256 invalid token_endpoint_auth_method'});
 		return;
 	}
 
@@ -319,9 +322,10 @@ app.post('/register', function (req, res){
 	}
 
 	reg.client_id = randomstring.generate();
-	if (__.contains(['client_secret_basic', 'client_secret_post']),
-		reg.token_endpoint_auth_method) {
+
+	if (['client_secret_basic', 'client_secret_post'].includes(reg.token_endpoint_auth_method)) {
 		reg.client_secret = randomstring.generate();
+		//console.log(reg.client_secret)
 	}
 
 	reg.client_id_created_at = Math.floor(Date.now() / 1000);
@@ -349,7 +353,7 @@ var buildUrl = function(base, options, hash) {
 };
 
 var decodeClientCredentials = function(auth) {
-	var clientCredentials = new Buffer(auth.slice('basic '.length), 'base64').toString().split(':');
+	var clientCredentials = Buffer.from(auth.slice('basic '.length), 'base64').toString().split(':');
 	var clientId = querystring.unescape(clientCredentials[0]);
 	var clientSecret = querystring.unescape(clientCredentials[1]);	
 	return { id: clientId, secret: clientSecret };
