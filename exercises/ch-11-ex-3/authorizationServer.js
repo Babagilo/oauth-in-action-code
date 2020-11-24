@@ -77,7 +77,7 @@ var getUser = function(username) {
 	return userInfo[username];
 };
 
-var rsaKey = {
+const rsaKey = {
   "alg": "RS256",
   "d": "ZXFizvaQ0RzWRbMExStaS_-yVnjtSQ9YslYQF1kkuIoTwFuiEQ2OywBfuyXhTvVQxIiJqPNnUyZR6kXAhyj__wS_Px1EH8zv7BHVt1N5TjJGlubt1dhAFCZQmgz0D-PfmATdf6KLL4HIijGrE8iYOPYIPF_FL8ddaxx5rsziRRnkRMX_fIHxuSQVCe401hSS3QBZOgwVdWEb1JuODT7KUk7xPpMTw5RYCeUoCYTRQ_KO8_NQMURi3GLvbgQGQgk7fmDcug3MwutmWbpe58GoSCkmExUS0U-KEkHtFiC8L6fN2jXh1whPeRCa9eoIK8nsIY05gnLKxXTn5-aPQzSy6Q",
   "e": "AQAB",
@@ -235,7 +235,7 @@ app.post("/token", function(req, res){
 				const header = { 'typ': 'JWT', 'alg': rsaKey.alg, 'kid': rsaKey.kid };
 				const privateKey = jose.KEYUTIL.getKey(rsaKey);
 
-				var payload = {
+				const payload = {
 					iss: 'http://localhost:9001/',
 					sub: code.user ? code.user.sub : undefined,
 					aud: 'http://localhost:9002/',
@@ -243,7 +243,7 @@ app.post("/token", function(req, res){
 					exp: Math.floor(Date.now() / 1000) + (5 * 60),
 					jti: randomstring.generate(8)
 				};
-				const access_token =jose.jws.JWS.sign(header.alg,JSON.stringify(header), JSON.stringify(payload), privateKey)
+				const access_token = jose.jws.JWS.sign(header.alg, JSON.stringify(header), JSON.stringify(payload), privateKey)
 
 
 				nosql.insert({ access_token: access_token, client_id: clientId, scope: code.scope, user: code.user });
@@ -315,7 +315,7 @@ var buildUrl = function(base, options, hash) {
 };
 
 var decodeClientCredentials = function(auth) {
-	var clientCredentials = new Buffer(auth.slice('basic '.length), 'base64').toString().split(':');
+	var clientCredentials = Buffer.from(auth.slice('basic '.length), 'base64').toString().split(':');
 	var clientId = querystring.unescape(clientCredentials[0]);
 	var clientSecret = querystring.unescape(clientCredentials[1]);	
 	return { id: clientId, secret: clientSecret };
