@@ -69,17 +69,18 @@ var getAccessToken = function(req, res, next) {
 	 */
 	var tokenParts = inToken.split('.');
 	var payload = JSON.parse(base64url.decode(tokenParts[1]));
+	const PROTECTED_RESOURCE_URL = 'http://localhost:9002/';
 	if (payload.iss == 'http://localhost:9001/') {
-		if ((Array.isArray(payload.aud) && __.contains(payload.aud, 'http://localhost:9002/')) ||
-		payload.aud == 'http://localhost:9002/') {
-		var now = Math.floor(Date.now() / 1000);
-		if (payload.iat <= now) {
-		if (payload.exp >= now) {
-		req.access_token = payload;
+		if ((Array.isArray(payload.aud) && payload.aud.includes(PROTECTED_RESOURCE_URL)) ||
+			payload.aud === PROTECTED_RESOURCE_URL) {
+			const now = Math.floor(Date.now() / 1000);
+			if (payload.iat <= now) {
+				if (payload.exp >= now) {
+					req.access_token = payload;
+				}
+			}
 		}
-		}
-		}
-		}
+	}
 
 	next();
 	return;

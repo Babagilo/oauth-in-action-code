@@ -224,7 +224,7 @@ app.post("/token", function(req, res){
 
 				//var access_token = randomstring.generate();
 				const header = {'typ':'JWT', 'alg':'none'}
-				var payload = {
+				const payload = {
 					iss: 'http://localhost:9001/',
 					sub: code.user ? code.user.sub : undefined,
 					aud: 'http://localhost:9002/',
@@ -232,10 +232,10 @@ app.post("/token", function(req, res){
 					exp: Math.floor(Date.now() / 1000) + (5 * 60),
 					jti: randomstring.generate(8)
 					};
-				var access_token = base64url.encode(JSON.stringify(header))
-				+ '.'
-				+ base64url.encode(JSON.stringify(payload))
-				+ '.';
+				const access_token = base64url.encode(JSON.stringify(header))
+					+ '.'
+					+ base64url.encode(JSON.stringify(payload))
+					+ '.';
 				nosql.insert({ access_token: access_token, client_id: clientId, scope: code.scope, user: code.user });
 
 				console.log('Issuing access token %s', access_token);
