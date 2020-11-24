@@ -80,9 +80,9 @@ var getClient = function(clientId) {
 	return __.find(clients, function(client) { return client.client_id == clientId; });
 };
 
-var getProtectedResource = function(resourceId) {
-	return __.find(protectedResources, function(protectedResource) { return protectedResource.resource_id == resourceId; });
-};
+function getProtectedResource (resourceId) {
+	return protectedResources.find( o => { return o.resource_id == resourceId; });
+}
 
 var getUser = function(username) {
 	return userInfo[username];
@@ -304,27 +304,27 @@ app.post('/introspect', function(req, res) {
 
 	const inToken = req.body.token;
 	nosql.one().make(builder => builder.where('access_token', inToken))
-	.callback(function (err, token) {
-		if (token) {
-			var introspectionResponse = {
-				active: true,
-				iss: 'http://localhost:9001/',
-				aud: 'http://localhost:9002/',
-				sub: token.user ? token.user.sub : undefined,
-				username: token.user ? token.user.preferred_username : undefined,
-				scope: token.scope ? token.scope.join(' ') : undefined,
-				client_id: token.client_id
-			};
-			res.status(200).json(introspectionResponse);
-			return;
-		} else {
-			var introspectionResponse = {
-				active: false
-			};
-			res.status(200).json(introspectionResponse);
-			return;
-		}
-	});
+		.callback(function (err, token) {
+			if (token) {
+				const introspectionResponse = {
+					active: true,
+					iss: 'http://localhost:9001/',
+					aud: 'http://localhost:9002/',
+					sub: token.user ? token.user.sub : undefined,
+					username: token.user ? token.user.preferred_username : undefined,
+					scope: token.scope ? token.scope.join(' ') : undefined,
+					client_id: token.client_id
+				};
+				res.status(200).json(introspectionResponse);
+				return;
+			} else {
+				const introspectionResponse = {
+					active: false
+				};
+				res.status(200).json(introspectionResponse);
+				return;
+			}
+		});
 });
 
 var buildUrl = function(base, options, hash) {

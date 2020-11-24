@@ -52,7 +52,7 @@ var getAccessToken = function(req, res, next) {
 	/*
 	 * Send the incoming token to the introspection endpoint and parse the results
 	 */
-	var form_data = qs.stringify({
+	const form_data = qs.stringify({
 		token: inToken
 	});
 	const headers = {
@@ -60,14 +60,14 @@ var getAccessToken = function(req, res, next) {
 		'Authorization': 'Basic ' + encodeClientCredentials(protectedResource
 			.resource_id, protectedResource.resource_secret)
 	};
-	var tokRes = request('POST', authServer.introspectionEndpoint, {
+	const tokRes = request('POST', authServer.introspectionEndpoint, {
 		body: form_data,
 		headers: headers
 	});
 	if (tokRes.statusCode >= 200 && tokRes.statusCode < 300) {
-		var body = JSON.parse(tokRes.getBody());
+		const body = JSON.parse(tokRes.getBody());
 		console.log('Got introspection response', body);
-		var active = body.active;
+		const active = body.active;
 		if (active) {
 			req.access_token = body;
 		}
