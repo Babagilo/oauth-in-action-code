@@ -228,7 +228,7 @@ app.post("/token", function(req, res){
 				 */
 				
 				const header = { 'typ': 'JWT', 'alg': 'HS256' };
-				var payload = {
+				const payload = {
 					iss: 'http://localhost:9001/',
 					sub: code.user ? code.user.sub : undefined,
 					aud: 'http://localhost:9002/',

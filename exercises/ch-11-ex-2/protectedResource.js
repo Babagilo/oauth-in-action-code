@@ -34,7 +34,6 @@ var authServer = {
 
 const sharedTokenSecret = 'shared OAuth token secret!';
 
-
 var getAccessToken = function(req, res, next) {
 	// check the auth header first
 	var auth = req.headers['authorization'];
@@ -64,12 +63,11 @@ var getAccessToken = function(req, res, next) {
 
 		if (payload.iss == 'http://localhost:9001/') {
 			console.log('issuer OK');
-			if ((Array.isArray(payload.aud) && __.contains(payload.aud, 'http://localhost:9002/')) ||
+			if ((Array.isArray(payload.aud) && payload.aud.includes('http://localhost:9002/')) ||
 				payload.aud == 'http://localhost:9002/') {
 				console.log('Audience OK');
 
-				var now = Math.floor(Date.now() / 1000);
-
+				const now = Math.floor(Date.now() / 1000);
 				if (payload.iat <= now) {
 					console.log('issued-at OK');
 					if (payload.exp >= now) {
@@ -84,6 +82,8 @@ var getAccessToken = function(req, res, next) {
 			}
 
 		}
+	}else{
+		console.log("Access Token Signature Verification Failed!!!")
 	}
 
 			
