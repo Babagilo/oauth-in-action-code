@@ -31,7 +31,7 @@ var client = {
 };
 
 // authorization server information
-var authServer = {
+const authServer = {
 	authorizationEndpoint: 'http://localhost:9001/authorize',
 	tokenEndpoint: 'http://localhost:9001/token',
 	revocationEndpoint: 'http://localhost:9001/revoke'
@@ -135,7 +135,7 @@ app.get('/fetch_resource', function(req, res) {
 		return;
 	}
 	
-	console.log('Making request with access token %s', access_token);
+	console.log('/fetch_resource with access token %s', access_token);
 	
 	var headers = {
 		'Authorization': 'Bearer ' + access_token,
@@ -177,6 +177,7 @@ app.post('/revoke', function(req, res) {
 		'Authorization': 'Basic ' + encodeClientCredentials(client.client_id,
 			client.client_secret)
 	};
+	console.log("revoking token " + access_token)
 	var tokRes = request('POST', authServer.revocationEndpoint, {
 		body: form_data,
 		headers: headers

@@ -250,18 +250,19 @@ app.post('/revoke', function (req, res) {
 	 * Implement the token revocation endpoint
 	 */
 	var auth = req.headers['authorization'];
+	let clientId, clientSecret;
 	if (auth) {
 		var clientCredentials = decodeClientCredentials(auth);
-		var clientId = clientCredentials.id;
-		var clientSecret = clientCredentials.secret;
+		clientId = clientCredentials.id;
+		clientSecret = clientCredentials.secret;
 	}
 	if (req.body.client_id) {
 		if (clientId) {
 			res.status(401).json({ error: 'invalid_client' });
 			return;
 		}
-		var clientId = req.body.client_id;
-		var clientSecret = req.body.client_secret;
+		clientId = req.body.client_id;
+		clientSecret = req.body.client_secret;
 	}
 	var client = getClient(clientId);
 	if (!client) {
