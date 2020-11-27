@@ -31,13 +31,14 @@ var client = {
 };
 
 // authorization server information
-var authServer = {
+const AUTHORIZATION_SERVER = {
+	iss: 'http://localhost:9001/',
 	authorizationEndpoint: 'http://localhost:9001/authorize',
 	tokenEndpoint: 'http://localhost:9001/token',
 	userInfoEndpoint: 'http://localhost:9002/userinfo'
 };
 
-var rsaKey = {
+const rsaKey = {
   "alg": "RS256",
   "e": "AQAB",
   "n": "p8eP5gL1H_H9UNzCuQS-vNRVz3NWxZTHYk1tG9VpkfFjWNKG3MFTNZJ1l5g_COMm2_2i_YhQNH8MJ_nQ4exKMXrWJB4tyVZohovUxfw-eLgu1XQ8oYcVYW8ym6Um-BkqwwWL6CXZ70X81YyIMrnsGTyTV6M8gBPun8g2L8KbDbXR1lDfOOWiZ2ss1CRLrmNM-GRp3Gj-ECG7_3Nx9n_s5to2ZtwJ1GS1maGjrSZ9GRAYLrHhndrL_8ie_9DS2T-ML7QNQtNkg2RvLv4f0dpjRYI23djxVtAylYK4oiT_uEMgSkc4dxwKwGuBxSO0g9JOobgfy0--FUHHYtRi0dOFZw",
@@ -66,7 +67,7 @@ app.get('/authorize', function(req, res){
 	scope = null;
 	state = randomstring.generate();
 	
-	var authorizeUrl = buildUrl(authServer.authorizationEndpoint, {
+	var authorizeUrl = buildUrl(AUTHORIZATION_SERVER.authorizationEndpoint, {
 		response_type: 'code',
 		scope: client.scope,
 		client_id: client.client_id,
@@ -107,7 +108,7 @@ app.get("/callback", function(req, res){
 		'Authorization': 'Basic ' + encodeClientCredentials(client.client_id, client.client_secret)
 	};
 
-	var tokRes = request('POST', authServer.tokenEndpoint, 
+	var tokRes = request('POST', AUTHORIZATION_SERVER.tokenEndpoint, 
 		{	
 			body: form_data,
 			headers: headers
@@ -145,9 +146,8 @@ app.get("/callback", function(req, res){
 			console.log('Payload', payload);
 			if (jose.jws.JWS.verify(body.id_token, pubKey, [rsaKey.alg])) {
 
-				if (payload.iss == 'http://localhost:9001/') {
-					if ((Array.isArray(payload.aud) && __.contains(payload.aud,
-						client.client_id)) ||
+				if (payload.iss === AUTHORIZATION_SERVER.iss) {
+					if ((Array.isArray(payload.aud) && payload.aud.includes(client.client_id)) ||
 						payload.aud == client.client_id) {
 						var now = Math.floor(Date.now() / 1000);
 						if (payload.iat <= now) {
@@ -209,7 +209,7 @@ app.get('/userinfo', function (req, res) {
 	var headers = {
 		'Authorization': 'Bearer ' + access_token
 	};
-	var resource = request('GET', authServer.userInfoEndpoint,
+	var resource = request('GET', AUTHORIZATION_SERVER.userInfoEndpoint,
 		{ headers: headers }
 	);
 	if (resource.statusCode >= 200 && resource.statusCode < 300) {

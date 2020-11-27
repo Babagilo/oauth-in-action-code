@@ -84,7 +84,7 @@ var userInfoEndpoint = function(req, res) {
 	/*
 	 * Implement the UserInfo Endpoint
 	 */
-	if (!__.contains(req.access_token.scope, 'openid')) {
+	if (!req.access_token.scope.includes('openid')) {
 		res.status(403).end();
 		return;
 	}

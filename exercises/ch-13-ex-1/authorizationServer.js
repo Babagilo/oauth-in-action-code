@@ -37,7 +37,7 @@ var clients = [
 	}
 ];
 
-var rsaKey = {
+const rsaKey = {
   "alg": "RS256",
   "d": "ZXFizvaQ0RzWRbMExStaS_-yVnjtSQ9YslYQF1kkuIoTwFuiEQ2OywBfuyXhTvVQxIiJqPNnUyZR6kXAhyj__wS_Px1EH8zv7BHVt1N5TjJGlubt1dhAFCZQmgz0D-PfmATdf6KLL4HIijGrE8iYOPYIPF_FL8ddaxx5rsziRRnkRMX_fIHxuSQVCe401hSS3QBZOgwVdWEb1JuODT7KUk7xPpMTw5RYCeUoCYTRQ_KO8_NQMURi3GLvbgQGQgk7fmDcug3MwutmWbpe58GoSCkmExUS0U-KEkHtFiC8L6fN2jXh1whPeRCa9eoIK8nsIY05gnLKxXTn5-aPQzSy6Q",
   "e": "AQAB",
@@ -46,8 +46,7 @@ var rsaKey = {
   "kid": "authserver"
 };
 
-var userInfo = {
-
+const userInfo = {
 	"alice": {
 		"sub": "9XE3-JI34-00132A",
 		"preferred_username": "alice",
@@ -140,11 +139,11 @@ app.post('/approve', function(req, res) {
 			
 			var user = getUser(req.body.user);
 
-			var scope = getScopesFromForm(req.body);
+			var scopeArray = getScopesFromForm(req.body);
 
 			var client = getClient(query.client_id);
 			var cscope = client.scope ? client.scope.split(' ') : undefined;
-			if (__.difference(scope, cscope).length > 0) {
+			if (__.difference(scopeArray, cscope).length > 0) {
 				// client asked for a scope it couldn't have
 				var urlParsed = buildUrl(query.redirect_uri, {
 					error: 'invalid_scope'
@@ -154,7 +153,7 @@ app.post('/approve', function(req, res) {
 			}
 
 			// save the code and request for later
-			codes[code] = { request: query, scope: scope, user: user };
+			codes[code] = { request: query, scope: scopeArray, user: user };
 		
 			var urlParsed = buildUrl(query.redirect_uri, {
 				code: code,
@@ -241,7 +240,7 @@ app.post("/token", function(req, res){
 				/*
 				 * Generate an ID token, if necessary
 				 */
-				if (__.contains(code.scope, 'openid') && code.user) {
+				if ( code.scope.includes( 'openid') && code.user) {
 					var header = { 'typ': 'JWT', 'alg': rsaKey.alg, 'kid': rsaKey.kid };
 
 					const ipayload = {
@@ -300,10 +299,14 @@ var buildUrl = function(base, options, hash) {
 	return url.format(newUrl);
 };
 
-var getScopesFromForm = function(body) {
-	return __.filter(__.keys(body), function(s) { return __.string.startsWith(s, 'scope_'); })
-				.map(function(s) { return s.slice('scope_'.length); });
-};
+/**
+ * 
+ * return an array of scopes
+ */
+function getScopesFromForm(body) {
+	return __.filter(__.keys(body), function (s) { return __.string.startsWith(s, 'scope_'); })
+		.map(s => s.slice('scope_'.length));
+}
 
 var decodeClientCredentials = function(auth) {
 	var clientCredentials = Buffer.from(auth.slice('basic '.length), 'base64').toString().split(':');
