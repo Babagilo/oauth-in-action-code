@@ -200,7 +200,26 @@ app.post("/token", function(req, res){
 				/*
 				 * Generate an access token and associated key, store them, and return them
 				 */
-
+				keystore.generate('RSA', 2048).then(key => {
+					var access_token = randomstring.generate();
+					const den = key.toJSON(true);
+					var access_token_public_key = key.toJSON();
+					var token_response = {
+						access_token: access_token, 
+						access_token_key: den, 
+						token_type: 'PoP', 
+						refresh_token: req.body.refresh_token, 
+						scope: code.scope, 
+						alg: 'RS256'
+					};
+					nosql.insert({
+						access_token: access_token, access_token_key: access_token_public_key, client_id: clientId, scope: code.scope
+					});
+					res.status(200).json(token_response);
+					console.log('Issued tokens for code %s', req.body.code);
+					return;
+				});
+				return;
 			} else {
 				console.log('Client mismatch, expected %s got %s', code.request.client_id, clientId);
 				res.status(400).json({error: 'invalid_grant'});
@@ -238,42 +257,42 @@ app.post('/introspect', function(req, res) {
 	
 	var inToken = req.body.token;
 	console.log('Introspecting token %s', inToken);
-	nosql.one(function(token) {
-		if (token.access_token == inToken) {
-			return token;	
-		}
-	}, function(err, token) {
-		if (token) {
-			console.log("We found a matching token: %s", inToken);
-			
-			var introspectionResponse = {
-				active: true,
-				iss: 'http://localhost:9001/',
-				aud: 'http://localhost:9002/',
-				sub: token.user ? token.user.sub : undefined,
-				username: token.user ? token.user.preferred_username : undefined,
-				scope: token.scope ? token.scope.join(' ') : undefined,
-				client_id: token.client_id
-			};
-			
-			/*
-			 * Add in the key and algorithm associated with the token to the introspection response
-			 */
-						
-			res.status(200).json(introspectionResponse);
-			return;
-		} else {
-			console.log('No matching token was found.');
-
-			var introspectionResponse = {
-				active: false
-			};
-			res.status(200).json(introspectionResponse);
-			return;
-		}
-	});
+	/**
+	 * Fix for
+	 * TypeError: Cannot read property '$filename' of undefined
+	 */
+	nosql.one().make(builder => builder.where('access_token', inToken)).callback(
+		function(err, token) {
+			if (token) {
+				console.log("We found a matching token: %s", inToken);
+				
+				let introspectionResponse = {
+					active: true,
+					iss: 'http://localhost:9001/',
+					aud: 'http://localhost:9002/',
+					sub: token.user ? token.user.sub : undefined,
+					username: token.user ? token.user.preferred_username : undefined,
+					scope: token.scope ? token.scope.join(' ') : undefined,
+					client_id: token.client_id
+				};
+				
+				/*
+				 * Add in the key and algorithm associated with the token to the introspection response
+				 */
+				introspectionResponse.access_token_key = token.access_token_key;
+				res.status(200).json(introspectionResponse);
+				return;
+			} else {
+				console.log('No matching token was found.');
 	
-	
+				var introspectionResponse = {
+					active: false
+				};
+				res.status(200).json(introspectionResponse);
+				return;
+			}
+		}
+	);	
 });
 
 
@@ -301,7 +320,7 @@ var getScopesFromForm = function(body) {
 };
 
 var decodeClientCredentials = function(auth) {
-	var clientCredentials = new Buffer(auth.slice('basic '.length), 'base64').toString().split(':');
+	var clientCredentials = Buffer.from(auth.slice('basic '.length), 'base64').toString().split(':');
 	var clientId = querystring.unescape(clientCredentials[0]);
 	var clientSecret = querystring.unescape(clientCredentials[1]);	
 	return { id: clientId, secret: clientSecret };

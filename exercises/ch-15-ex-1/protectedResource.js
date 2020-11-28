@@ -36,13 +36,61 @@ var authServer = {
 };
 
 
-var getAccessToken = function(req, res, next) {
+function getAccessToken (req, res, next) {
 
 	/*
 	 * Implement PoP signature validation and token lookup using introspection
 	 */
+	var auth = req.headers['authorization'];
+	var inToken = null;
+	if (auth && auth.toLowerCase().indexOf('pop') == 0) {
+		inToken = auth.slice('pop '.length);
+	} else if (req.body && req.body.pop_access_token) {
+		inToken = req.body.pop_access_token;
+	} else if (req.query && req.query.pop_access_token) {
+		inToken = req.query.pop_access_token
+	}
 
-};
+	var tokenParts = inToken.split('.');
+	var header = JSON.parse(base64url.decode(tokenParts[0]));
+	var payload = JSON.parse(base64url.decode(tokenParts[1]));
+	var at = payload.at;
+
+	var form_data = qs.stringify({
+		token: at
+	});
+	var headers = {
+		'Content-Type': 'application/x-www-form-urlencoded',
+		'Authorization': 'Basic ' + encodeClientCredentials(protectedResource.
+			resource_id, protectedResource.resource_secret)
+	};
+	var tokRes = request('POST', authServer.introspectionEndpoint, {
+		body: form_data,
+		headers: headers
+	});
+
+	if (tokRes.statusCode >= 200 && tokRes.statusCode < 300) {
+		var body = JSON.parse(tokRes.getBody());
+		var active = body.active;
+		if (active) {
+			var pubKey = jose.KEYUTIL.getKey(body.access_token_key);
+			if (jose.jws.JWS.verify(inToken, pubKey, [header.alg])) {
+				if (!payload.m || payload.m == req.method) {
+					if (!payload.u || payload.u == 'localhost:9002') {
+						if (!payload.p || payload.p == req.path) {
+							req.access_token = {
+								access_token: at,
+								scope: body.scope
+							};
+						};
+					}
+				}
+			}
+		}
+	}
+	next();
+	return;
+}
 
 var requireAccessToken = function(req, res, next) {
 	if (req.access_token) {
@@ -65,7 +113,7 @@ app.post("/resource", cors(), getAccessToken, function(req, res){
 });
 
 var encodeClientCredentials = function(clientId, clientSecret) {
-	return new Buffer(querystring.escape(clientId) + ':' + querystring.escape(clientSecret)).toString('base64');
+	return Buffer.from(querystring.escape(clientId) + ':' + querystring.escape(clientSecret)).toString('base64');
 };
 
 var server = app.listen(9002, 'localhost', function () {
