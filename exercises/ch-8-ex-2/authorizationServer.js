@@ -413,11 +413,13 @@ app.post("/token", function(req, res){
 		return;	
 		
 	} else if (req.body.grant_type == 'refresh_token') {
-		nosql.all(function(token) {
-			return (token.refresh_token == req.body.refresh_token);
-		}, function(err, tokens) {
-			if (tokens.length == 1) {
-				var token = tokens[0];
+
+		nosql.one(token => {
+			if (token.refresh_token == req.body.refresh_token) {
+				return token;	
+			}
+		}, function(err, token) {
+			if (token) {
 				if (token.client_id != clientId) {
 					console.log('Invalid client using a refresh token, expected %s got %s', token.client_id, clientId);
 					nosql.remove(function(found) { return (found == token); }, function () {} );

@@ -71,7 +71,7 @@ var getAccessToken = function(req, res, next) {
 				console.log("We found a matching token: %s", inToken);
 			} else {
 				console.log('No matching token was found.');
-			};
+			}
 			req.access_token = response;
 			next();
 			return;
@@ -93,7 +93,7 @@ app.get("/helloWorld", cors(), getAccessToken, function(req, res){
 		res.setHeader('X-Content-Type-Options','nosniff');
 		res.setHeader('X-XSS-Protection', '1; mode=block');
 
-		var resource = {
+		resource = {
 			"greeting" : ""
 		};
 

@@ -151,7 +151,7 @@ app.get("/callback", function(req, res){
 			});
 	var headers = {
 		'Content-Type': 'application/x-www-form-urlencoded',
-		'Authorization': 'Basic ' + new Buffer(querystring.escape(client.client_id) + ':' + querystring.escape(client.client_secret)).toString('base64')
+		'Authorization': 'Basic ' + Buffer.from(querystring.escape(client.client_id) + ':' + querystring.escape(client.client_secret)).toString('base64')
 	};
 
 	var tokRes = request('POST', authServer.tokenEndpoint, 
@@ -294,6 +294,7 @@ app.get('/fetch_resource', function(req, res) {
 		res.render('data', {resource: body});
 		return;
 	} else {
+		console.log("request resource failed with code : " + resource.statusCode);
 		access_token = null;
 		if (refresh_token) {
 			// try to refresh and start again
@@ -318,7 +319,7 @@ app.post('/revoke', function(req, res) {
 	});
 	var headers = {
 		'Content-Type': 'application/x-www-form-urlencoded',
- 		'Authorization': 'Basic ' + new Buffer(querystring.escape(client.client_id) + ':' + querystring.escape(client.client_secret)).toString('base64')
+ 		'Authorization': 'Basic ' + Buffer.from(querystring.escape(client.client_id) + ':' + querystring.escape(client.client_secret)).toString('base64')
 	};
 	console.log('Revoking token %s', access_token);
 	var tokRes = request('POST', authServer.revocationEndpoint, 
