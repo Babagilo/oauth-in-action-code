@@ -87,6 +87,7 @@ var requireAccessToken = function(req, res, next) {
 app.options('/helloWorld', cors());
 
 app.get("/helloWorld", cors(), getAccessToken, function(req, res){
+	console.log("entering /helloWorld");
 	if (req.access_token) {
 		res.setHeader('Strict-Transport-Security', 'max-age=31536000');
 		res.setHeader('X-Content-Type-Options','nosniff');
