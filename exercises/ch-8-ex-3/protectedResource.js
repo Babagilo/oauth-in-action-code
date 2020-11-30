@@ -92,7 +92,7 @@ app.get("/helloWorld", cors(), getAccessToken, function(req, res){
 		res.setHeader('X-Content-Type-Options','nosniff');
 		res.setHeader('X-XSS-Protection', '1; mode=block');
 
-		var resource = {
+		resource = {
 			"greeting" : ""
 		};
 

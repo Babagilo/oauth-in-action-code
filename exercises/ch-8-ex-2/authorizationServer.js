@@ -281,7 +281,7 @@ var generateTokens = function (req, res, clientId, user, scope, nonce, generateR
 	//var encodedPayload = base64url.encode(JSON.stringify(payload));
 
 	//var access_token = encodedHeader + '.' + encodedPayload + '.';
-	//var access_token = jose.jws.JWS.sign('HS256', stringHeader, stringPayload, new Buffer(sharedTokenSecret).toString('hex'));
+	//var access_token = jose.jws.JWS.sign('HS256', stringHeader, stringPayload, Buffer.from(sharedTokenSecret).toString('hex'));
 	var privateKey = jose.KEYUTIL.getKey(rsaKey);
 	var access_token = jose.jws.JWS.sign('RS256', stringHeader, stringPayload, privateKey);
 	*/
@@ -332,7 +332,7 @@ app.post("/token", function(req, res){
 	var auth = req.headers['authorization'];
 	if (auth) {
 		// check the auth header
-		var clientCredentials = new Buffer(auth.slice('basic '.length), 'base64').toString().split(':');
+		var clientCredentials = Buffer.from(auth.slice('basic '.length), 'base64').toString().split(':');
 		var clientId = querystring.unescape(clientCredentials[0]);
 		var clientSecret = querystring.unescape(clientCredentials[1]);
 	}
@@ -413,12 +413,8 @@ app.post("/token", function(req, res){
 		return;	
 		
 	} else if (req.body.grant_type == 'refresh_token') {
-
-		nosql.one(token => {
-			if (token.refresh_token == req.body.refresh_token) {
-				return token;	
-			}
-		}, function(err, token) {
+		nosql.one().make(builder => builder.where('refresh_token', req.body.refresh_token))
+		.callback(function(err, token) {
 			if (token) {
 				if (token.client_id != clientId) {
 					console.log('Invalid client using a refresh token, expected %s got %s', token.client_id, clientId);
@@ -471,7 +467,7 @@ app.post('/revoke', function(req, res) {
 	var auth = req.headers['authorization'];
 	if (auth) {
 		// check the auth header
-		var clientCredentials = new Buffer(auth.slice('basic '.length), 'base64').toString().split(':');
+		var clientCredentials = Buffer.from(auth.slice('basic '.length), 'base64').toString().split(':');
 		var clientId = querystring.unescape(clientCredentials[0]);
 		var clientSecret = querystring.unescape(clientCredentials[1]);
 	}
@@ -517,7 +513,7 @@ app.post('/revoke', function(req, res) {
 
 app.post('/introspect', function(req, res) {
 	var auth = req.headers['authorization'];
-	var resourceCredentials = new Buffer(auth.slice('basic '.length), 'base64').toString().split(':');
+	var resourceCredentials = Buffer.from(auth.slice('basic '.length), 'base64').toString().split(':');
 	var resourceId = querystring.unescape(resourceCredentials[0]);
 	var resourceSecret = querystring.unescape(resourceCredentials[1]);
 
