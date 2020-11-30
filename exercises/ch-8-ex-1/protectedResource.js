@@ -88,7 +88,7 @@ app.get("/helloWorld", getAccessToken, function (req, res) {
 	res.setHeader('X-Content-Type-Options', 'nosniff');
 	res.setHeader('X-XSS-Protection', '1; mode=block');
 	if (req.access_token) {
-		var resource = {
+		resource = {
 			"greeting": ""
 		};
 		if (req.query.language == "en") {

@@ -650,7 +650,7 @@ app.post('/register', function (req, res){
 	}
 
 	reg.client_id = randomstring.generate();
-	if (__.contains(['client_secret_basic', 'client_secret_post']), reg.token_endpoint_auth_method) {
+	if (['client_secret_basic', 'client_secret_post'].includes(reg.token_endpoint_auth_method) ) {
 		reg.client_secret = randomstring.generate();
 	}
 
