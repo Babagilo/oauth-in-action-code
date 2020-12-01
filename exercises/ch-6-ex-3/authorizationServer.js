@@ -265,8 +265,8 @@ app.post("/token", function(req, res){
 			res.status(401).json({ error: 'invalid_scope' });
 			return;
 		}
-		var access_token = randomstring.generate();
-		var refresh_token = randomstring.generate();
+		const access_token = randomstring.generate();
+		const refresh_token = randomstring.generate();
 		nosql.insert({
 			access_token: access_token, client_id: clientId, scope:
 				rscope
@@ -275,7 +275,7 @@ app.post("/token", function(req, res){
 			refresh_token: refresh_token, client_id: clientId, scope:
 				rscope
 		});
-		var token_response = {
+		const token_response = {
 			access_token: access_token, token_type: 'Bearer',
 			refresh_token: refresh_token, scope: rscope.join(' ')
 		};
