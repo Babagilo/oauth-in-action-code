@@ -48,7 +48,7 @@ var getAccessToken = function (req, res, next) {
 				console.log("We found a matching token: %s", inToken);
 			} else {
 				console.log('No matching token was found.');
-			};
+			}
 			req.access_token = response;
 			next();
 			return;

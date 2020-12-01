@@ -25,7 +25,7 @@ var authServer = {
 
 // client information
 
-var client = {
+const client = {
 	"client_id": "oauth-client-1",
 	"client_secret": "oauth-client-secret-1",
 	"scope": "foo bar"

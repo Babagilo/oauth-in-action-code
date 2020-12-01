@@ -174,7 +174,7 @@ app.post("/token", function (req, res) {
 		return;
 	}
 
-	if (req.body.grant_type == 'authorization_code') {
+	if (req.body.grant_type === 'authorization_code') {
 
 		var code = codes[req.body.code];
 
@@ -182,15 +182,15 @@ app.post("/token", function (req, res) {
 			delete codes[req.body.code]; // burn our code, it's been used
 			if (code.request.client_id == clientId) {
 
-				var access_token = randomstring.generate();
-				var refresh_token = randomstring.generate();
+				const access_token = randomstring.generate();
+				const refresh_token = randomstring.generate();
 
 				nosql.insert({ access_token: access_token, client_id: clientId, scope: code.scope });
 				nosql.insert({ refresh_token: refresh_token, client_id: clientId, scope: code.scope });
 
 				console.log('Issuing access token %s', access_token);
 
-				var token_response = { access_token: access_token, token_type: 'Bearer', refresh_token: refresh_token, scope: code.scope.join(' ') };
+				const token_response = { access_token: access_token, token_type: 'Bearer', refresh_token: refresh_token, scope: code.scope.join(' ') };
 
 				res.status(200).json(token_response);
 				console.log('Issued tokens for code %s', req.body.code);
@@ -212,15 +212,15 @@ app.post("/token", function (req, res) {
 		/*
 		 * Implement the client credentials grant type
 		 */
-	} else if (req.body.grant_type == 'client_credentials') {
+	} else if (req.body.grant_type === 'client_credentials') {
 		var rscope = req.body.scope ? req.body.scope.split(' ') : undefined;
 		var cscope = client.scope ? client.scope.split(' ') : undefined;
 		if (__.difference(rscope, cscope).length > 0) {
 			res.status(400).json({ error: 'invalid_scope' });
 			return;
 		}
-		var access_token = randomstring.generate();
-		var token_response = {
+		const access_token = randomstring.generate();
+		const token_response = {
 			access_token: access_token, token_type: 'Bearer',
 			scope: rscope.join(' ')
 		};
@@ -244,9 +244,9 @@ app.post("/token", function (req, res) {
 					res.status(400).json({ error: 'invalid_grant' });
 					return;
 				}
-				var access_token = randomstring.generate();
+				const access_token = randomstring.generate();
 				nosql.insert({ access_token: access_token, client_id: clientId });
-				var token_response = { access_token: access_token, token_type: 'Bearer', refresh_token: token.refresh_token };
+				const token_response = { access_token: access_token, token_type: 'Bearer', refresh_token: token.refresh_token };
 				res.status(200).json(token_response);
 				return;
 			} else {
