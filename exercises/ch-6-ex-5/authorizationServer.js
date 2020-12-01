@@ -281,7 +281,7 @@ var generateTokens = function (req, res, clientId, user, scope, nonce, generateR
 	//var encodedPayload = base64url.encode(JSON.stringify(payload));
 
 	//var access_token = encodedHeader + '.' + encodedPayload + '.';
-	//var access_token = jose.jws.JWS.sign('HS256', stringHeader, stringPayload, new Buffer(sharedTokenSecret).toString('hex'));
+	//var access_token = jose.jws.JWS.sign('HS256', stringHeader, stringPayload, Buffer.from(sharedTokenSecret).toString('hex'));
 	var privateKey = jose.KEYUTIL.getKey(rsaKey);
 	var access_token = jose.jws.JWS.sign('RS256', stringHeader, stringPayload, privateKey);
 	*/
@@ -515,7 +515,7 @@ app.post('/revoke', function(req, res) {
 
 app.post('/introspect', function(req, res) {
 	var auth = req.headers['authorization'];
-	var resourceCredentials = new Buffer(auth.slice('basic '.length), 'base64').toString().split(':');
+	var resourceCredentials = Buffer.from(auth.slice('basic '.length), 'base64').toString().split(':');
 	var resourceId = querystring.unescape(resourceCredentials[0]);
 	var resourceSecret = querystring.unescape(resourceCredentials[1]);
 
@@ -648,7 +648,7 @@ app.post('/register', function (req, res){
 	}
 
 	reg.client_id = randomstring.generate();
-	if (__.contains(['client_secret_basic', 'client_secret_post']), reg.token_endpoint_auth_method) {
+	if (['client_secret_basic', 'client_secret_post'].includes(reg.token_endpoint_auth_method)) {
 		reg.client_secret = randomstring.generate();
 	}
 
