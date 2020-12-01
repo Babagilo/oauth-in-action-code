@@ -47,7 +47,7 @@
       var callbackData;
 
       // client information
-      var client = {
+      const client = {
         'client_name': 'Native OAuth Client',
         'client_id': '',
         'client_secret': '',
@@ -56,7 +56,7 @@
       };
 
       // authorization server information
-      var authServer = {
+      const authServer = {
         authorizationEndpoint: 'http://localhost:9001/authorize',
         tokenEndpoint: 'http://localhost:9001/token',
         registrationEndpoint: 'http://localhost:9001/register'
@@ -65,20 +65,20 @@
       var protectedResource = 'http://localhost:9002/resource';
       window.onload = function() {
 
-if (!client.client_id) {
-  $.ajax({
-      url: authServer.registrationEndpoint,
-      type: 'POST',
-      data: client,
-      crossDomain: true,
-      dataType: 'json'             
-    }).done(function(data) {
-      client.client_id = data.client_id;
-      client.client_secret = data.client_secret;
-    }).fail(function() {
-      $('.oauth-protected-resource').text('Error while fetching registration endpoint');
-    });   
-}       
+        if (!client.client_id) {
+          $.ajax({
+            url: authServer.registrationEndpoint,
+            type: 'POST',
+            data: client,
+            crossDomain: true,
+            dataType: 'json'
+          }).done(function (data) {
+            client.client_id = data.client_id;
+            client.client_secret = data.client_secret;
+          }).fail(function () {
+            $('.oauth-protected-resource').text('Error while fetching registration endpoint');
+          });
+        }       
 }
       function generateState(len) {
         var ret = '';
