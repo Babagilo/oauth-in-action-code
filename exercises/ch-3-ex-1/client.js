@@ -9,13 +9,13 @@ var __ = require('underscore');
 __.string = require('underscore.string');
 
 var app = express();
-
+app.disable("x-powered-by");
 app.engine('html', cons.underscore);
 app.set('view engine', 'html');
 app.set('views', 'files/client');
 
 // authorization server information
-var authServer = {
+const authServer = {
 	authorizationEndpoint: 'http://localhost:9001/authorize',
 	tokenEndpoint: 'http://localhost:9001/token'
 };
@@ -26,13 +26,13 @@ var authServer = {
 /*
  * Add the client information in here
  */
-var client = {
+const client = {
 	"client_id": "oauth-client-1",
 	"client_secret": "oauth-client-secret-1",
 	"redirect_uris": ["http://localhost:9000/callback"]
 };
 
-var protectedResource = 'http://localhost:9002/resource';
+const protectedResource = 'http://localhost:9002/resource';
 
 var state = null;
 
@@ -52,7 +52,7 @@ app.get('/authorize', function (req, res) {
 	/*
 	 * Send the user to the authorization server
 	 */
-	var authorizeUrl = buildUrl(authServer.authorizationEndpoint, {
+	const authorizeUrl = buildUrl(authServer.authorizationEndpoint, {
 		response_type: 'code',
 		client_id: client.client_id,
 		'redirect_uri': client.redirect_uris[0],
@@ -71,7 +71,7 @@ app.get('/callback', function (req, res) {
 		return;
 	}
 	var code = req.query.code;
-	var form_data = qs.stringify({
+	const form_data = qs.stringify({
 		grant_type: 'authorization_code',
 		'code': code,
 		redirect_uri: client.redirect_uris[0]
@@ -81,7 +81,7 @@ app.get('/callback', function (req, res) {
 		'Authorization': 'Basic ' + encodeClientCredentials(client.client_id,
 			client.client_secret)
 	};
-	var tokRes = request('POST', authServer.tokenEndpoint,
+	const tokRes = request('POST', authServer.tokenEndpoint,
 		{
 			body: form_data,
 			headers: headers
@@ -97,6 +97,10 @@ app.get('/fetch_resource', function (req, res) {
 	/*
 	 * Use the access token to call the resource server
 	 */
+	if (!access_token) {
+		res.render('error', {error: 'Missing access token.'});
+		return;
+		}
 	var headers = {
 		'Authorization': 'Bearer ' + access_token
 	};

@@ -64,7 +64,7 @@ app.get("/authorize", function(req, res){
 		var rscope = req.query.scope ? req.query.scope.split(' ') : undefined;
 		var cscope = client.scope ? client.scope.split(' ') : undefined;
 		if (__.difference(rscope, cscope).length > 0) {
-			var urlParsed = buildUrl(req.query.redirect_uri, {
+			const urlParsed = buildUrl(req.query.redirect_uri, {
 				error: 'invalid_scope'
 			});
 			res.redirect(urlParsed);
@@ -101,7 +101,7 @@ app.post('/approve', function(req, res) {
 			var client = getClient(query.client_id);
 			var cscope = client.scope ? client.scope.split(' ') : undefined;
 			if (__.difference(rscope, cscope).length > 0) {
-				var urlParsed = buildUrl(query.redirect_uri, {
+				const urlParsed = buildUrl(query.redirect_uri, {
 					error: 'invalid_scope'
 				});
 				res.redirect(urlParsed);
@@ -114,7 +114,7 @@ app.post('/approve', function(req, res) {
 			
 			codes[code] = { request: query, scope: rscope };
 		
-			var urlParsed = buildUrl(query.redirect_uri, {
+			const urlParsed = buildUrl(query.redirect_uri, {
 				code: code,
 				state: query.state
 			});
@@ -122,7 +122,7 @@ app.post('/approve', function(req, res) {
 			return;
 		} else {
 			// we got a response type we don't understand
-			var urlParsed = buildUrl(query.redirect_uri, {
+			const urlParsed = buildUrl(query.redirect_uri, {
 				error: 'unsupported_response_type'
 			});
 			res.redirect(urlParsed);
@@ -130,7 +130,7 @@ app.post('/approve', function(req, res) {
 		}
 	} else {
 		// user denied access
-		var urlParsed = buildUrl(query.redirect_uri, {
+		const urlParsed = buildUrl(query.redirect_uri, {
 			error: 'access_denied'
 		});
 		res.redirect(urlParsed);

@@ -19,13 +19,13 @@ app.set('views', 'files/authorizationServer');
 app.set('json spaces', 4);
 
 // authorization server information
-var authServer = {
+const authServer = {
 	authorizationEndpoint: 'http://localhost:9001/authorize',
 	tokenEndpoint: 'http://localhost:9001/token'
 };
 
 // client information
-var clients = [
+const clients = [
 	{
 		"client_id": "oauth-client-1",
 		"client_secret": "oauth-client-secret-1",
@@ -34,7 +34,7 @@ var clients = [
 	}
 ];
 
-var codes = {};
+const codes = {};
 
 var requests = {};
 
@@ -54,7 +54,7 @@ app.get("/authorize", function(req, res){
 		console.log('Unknown client %s', req.query.client_id);
 		res.render('error', {error: 'Unknown client'});
 		return;
-	} else if (!__.contains(client.redirect_uris, req.query.redirect_uri)) {
+	} else if (!client.redirect_uris.includes(req.query.redirect_uri)) {
 		console.log('Mismatched redirect URI, expected %s got %s', client.redirect_uris, req.query.redirect_uri);
 		res.render('error', {error: 'Invalid redirect URI'});
 		return;
@@ -184,15 +184,15 @@ app.post("/token", function(req, res){
 	
 	if (req.body.grant_type == 'authorization_code') {
 		
-		var code = codes[req.body.code];
+		const code = codes[req.body.code];
 		
 		if (code) {
 			delete codes[req.body.code]; // burn our code, it's been used
 			if (code.authorizationEndpointRequest.client_id == clientId) {
 
-				var access_token = randomstring.generate();
+				const access_token = randomstring.generate();
 
-				var cscope = null;
+				let cscope = null;
 				if (code.scope) {
 					cscope = code.scope.join(' ')
 				}
@@ -202,7 +202,7 @@ app.post("/token", function(req, res){
 				console.log('Issuing access token %s', access_token);
 				console.log('with scope %s', cscope);
 
-				var token_response = { access_token: access_token, token_type: 'Bearer',  scope: cscope };
+				const token_response = { access_token: access_token, token_type: 'Bearer',  scope: cscope };
 
 				res.status(200).json(token_response);
 				console.log('Issued tokens for code %s', req.body.code);
