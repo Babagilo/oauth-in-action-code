@@ -10,7 +10,7 @@ __.string = require('underscore.string');
 
 
 var app = express();
-
+app.disable("x-powered-by");
 app.engine('html', cons.underscore);
 app.set('view engine', 'html');
 app.set('views', 'files/client');
@@ -150,7 +150,7 @@ app.get('/fetch_resource', function (req, res) {
 
 });
 
-var refreshAccessToken = function (req, res) {
+function refreshAccessToken(req, res) {
 
 	/*
 	 * Use the refresh token to get a new access token
@@ -169,10 +169,10 @@ var refreshAccessToken = function (req, res) {
 		headers: headers
 	})
 
-	console.log("Refresh token");
+	console.log("Refreshing token");
 
 	if (tokRes.statusCode >= 200 && tokRes.statusCode < 300) {
-		var body = JSON.parse(tokRes.getBody());
+		const body = JSON.parse(tokRes.getBody());
 
 		access_token = body.access_token;
 		console.log('Got access token: %s', access_token);
@@ -193,7 +193,7 @@ var refreshAccessToken = function (req, res) {
 
 
 
-};
+}
 
 var buildUrl = function (base, options, hash) {
 	var newUrl = url.parse(base, true);
