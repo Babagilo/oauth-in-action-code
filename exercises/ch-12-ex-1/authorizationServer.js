@@ -9,7 +9,7 @@ var __ = require('underscore');
 __.string = require('underscore.string');
 
 var app = express();
-
+app.disable("x-powered-by");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); // support form-encoded bodies (for the token endpoint)
 
@@ -359,10 +359,10 @@ var decodeClientCredentials = function(auth) {
 	return { id: clientId, secret: clientSecret };
 };
 
-var getScopesFromForm = function(body) {
+function getScopesFromForm(body) {
 	return __.filter(__.keys(body), function(s) { return __.string.startsWith(s, 'scope_'); })
 				.map(function(s) { return s.slice('scope_'.length); });
-};
+}
 
 app.use('/', express.static('files/authorizationServer'));
 

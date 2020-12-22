@@ -13,7 +13,7 @@ __.string = require('underscore.string');
 
 
 var app = express();
-
+app.disable("x-powered-by");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -26,7 +26,7 @@ app.set('views', 'files/client');
 var client = {};
 
 // authorization server information
-var authServer = {
+const authServer = {
 	authorizationEndpoint: 'http://localhost:9001/authorize',
 	tokenEndpoint: 'http://localhost:9001/token',
 	registrationEndpoint: 'http://localhost:9001/register'

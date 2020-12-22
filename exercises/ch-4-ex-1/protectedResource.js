@@ -6,7 +6,7 @@ var __ = require('underscore');
 var cors = require('cors');
 
 var app = express();
-
+app.disable("x-powered-by");
 app.use(bodyParser.urlencoded({ extended: true })); // support form-encoded bodies (for bearer tokens)
 
 app.engine('html', cons.underscore);
@@ -70,6 +70,6 @@ var server = app.listen(9002, 'localhost', function () {
 	var host = server.address().address;
 	var port = server.address().port;
 
-	console.log('OAuth Resource Server is listening at http://%s:%s', host, port);
+	console.log(`OAuth Resource Server is listening at http://${host}:${port}`);
 });
 
