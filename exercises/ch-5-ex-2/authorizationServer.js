@@ -151,7 +151,7 @@ app.post("/token", function (req, res) {
 		return;
 	}
 
-	if (req.body.grant_type == 'authorization_code') {
+	if (req.body.grant_type === 'authorization_code') {
 
 		var code = codes[req.body.code];
 
@@ -159,20 +159,21 @@ app.post("/token", function (req, res) {
 			delete codes[req.body.code]; // burn our code, it's been used
 			if (code.request.client_id == clientId) {
 
-				var access_token = randomstring.generate();
+				const access_token = randomstring.generate();
 				nosql.insert({ access_token: access_token, client_id: clientId });
 
 				/*
 				 * Issue a refresh token along side the access token and save it to the database
 				 */
-				var refresh_token = randomstring.generate();
+				const refresh_token = randomstring.generate();
 				nosql.insert({ refresh_token: refresh_token, client_id: clientId });
 
 				console.log('Issuing access token %s', access_token);
 				console.log('with scope %s', code.scope);
 
 				const token_response = {
-					access_token: access_token, token_type: 'Bearer',
+					access_token: access_token, 
+					token_type: 'Bearer',
 					'refresh_token': refresh_token
 				};
 
@@ -195,16 +196,18 @@ app.post("/token", function (req, res) {
 		/*
 		 * Respond to a refresh token request by issuing a new access token
 		 */
-	} else if (req.body.grant_type == 'refresh_token') {
+	} else if (req.body.grant_type === 'refresh_token') {
 		//search the refresh_token from nosql
-		nosql.one().make(builder => builder.where('refresh_token', req.body.refresh_token)).callback((err, doc) => {
+		nosql.one()
+		.make(builder => builder.where('refresh_token', req.body.refresh_token))
+		.callback((err, doc) => {
 			if (doc) {
 				if (doc.client_id != clientId) {
 					nosql.remove(function (found) { return (found == doc); }, function () { });
 					res.status(400).json({ error: 'invalid_grant' });
 					return;
 				}
-				var access_token = randomstring.generate();
+				const access_token = randomstring.generate();
 				nosql.insert({ access_token: access_token, client_id: clientId });
 				var token_response = {
 					access_token: access_token, token_type: 'Bearer',
