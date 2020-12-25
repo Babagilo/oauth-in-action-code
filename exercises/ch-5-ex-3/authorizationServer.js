@@ -6,7 +6,6 @@ var cons = require('consolidate');
 var nosql = require('nosql').load('database.nosql');
 var querystring = require('querystring');
 var __ = require('underscore');
-__.string = require('underscore.string');
 
 var app = express();
 
