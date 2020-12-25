@@ -304,7 +304,7 @@ var buildUrl = function(base, options, hash) {
  * return an array of scopes
  */
 function getScopesFromForm(body) {
-	return __.filter(__.keys(body), function (s) { return __.string.startsWith(s, 'scope_'); })
+	return __.filter(__.keys(body), function (s) { return s.startsWith( 'scope_'); })
 		.map(s => s.slice('scope_'.length));
 }
 

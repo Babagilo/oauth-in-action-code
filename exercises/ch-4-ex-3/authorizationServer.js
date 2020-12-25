@@ -135,7 +135,7 @@ app.post('/approve', function(req, res) {
 			
 			var user = req.body.user;
 		
-			var scope = __.filter(__.keys(req.body), function(s) { return __.string.startsWith(s, 'scope_'); })
+			var scope = __.filter(__.keys(req.body), function(s) { return s.startsWith( 'scope_'); })
 				.map(function(s) { return s.slice('scope_'.length); });
 			var client = getClient(query.client_id);
 			var cscope = client.scope ? client.scope.split(' ') : undefined;
@@ -162,7 +162,7 @@ app.post('/approve', function(req, res) {
 		} else if (query.response_type == 'token') {
 			var user = req.body.user;
 		
-			var scope = __.filter(__.keys(req.body), function(s) { return __.string.startsWith(s, 'scope_'); })
+			var scope = __.filter(__.keys(req.body), function(s) { return s.startsWith( 'scope_'); })
 				.map(function(s) { return s.slice('scope_'.length); });
 			var client = getClient(query.client_id);
 			var cscope = client.scope ? client.scope.split(' ') : undefined;
