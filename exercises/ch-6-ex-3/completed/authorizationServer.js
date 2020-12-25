@@ -327,7 +327,7 @@ var decodeClientCredentials = function(auth) {
 };
 
 var getScopesFromForm = function(body) {
-	return __.filter(__.keys(body), function(s) { return s.startsWith( 'scope_'); })
+	return Object.keys(body).filter(function(s) { return s.startsWith( 'scope_'); })
 				.map(function(s) { return s.slice('scope_'.length); });
 };
 
